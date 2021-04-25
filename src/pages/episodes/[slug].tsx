@@ -2,8 +2,8 @@ import { format,parseISO } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
 import Image from 'next/image'
 import Link from 'next/link'
-import { GetStaticPaths, GetStaticProps } from 'next'
 import { useRouter } from 'next/router'
+import { GetStaticPaths, GetStaticProps } from 'next'
 
 import { api } from '../../services/api';
 import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString';
@@ -18,17 +18,15 @@ type Episode = {
   duration: number;
   durationAsString:string;
   url: string;
-  published_at: string;
+  publishedAt: string;
   description: string;
 };
-
 
 type EpisodeProps = {
   episode: Episode;
 }
 
 export default function Episode({episode}: EpisodeProps){
-  
   return (
     <div className={styles.episode}>
       <div  className={styles.thumbnailContainer}>
@@ -60,15 +58,29 @@ export default function Episode({episode}: EpisodeProps){
         dangerouslySetInnerHTML={ { __html: episode.description }}
       />
       </div>
-
-
   )
 }  
 
-export const getStaticPaths: GetStaticPaths = async() =>{
+export const getStaticPaths: GetStaticPaths = async () =>{
+  const { data } = await api.get('episodes', {
+    params: {
+      _limit: 2,
+      _sort: 'publishes_at',
+      _order: 'desc'
+    }
+  })
+
+  const paths = data.map(episode => {
+    return{
+      params: {
+        slug: episode.id
+      }
+    }
+  })
+  
   return{
-    paths: [],
-    fallback: 'blocking'
+    paths,
+    fallback: 'blocking',
   }
 }
 
